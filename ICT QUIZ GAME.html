@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Random Animal ICT Quiz Boxes</title>
+<style>
+body {font-family: Arial, sans-serif; background: #f0f8ff; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; margin: 0;}
+h1 {color: #333;}
+#animal-selection, #quiz, #result {display: none; flex-direction: column; align-items: center;}
+#boxes {display: grid; grid-template-columns: repeat(3, 120px); gap: 15px; margin-top: 20px;}
+.animal-box {width: 120px; height: 80px; background: #fff; border: 2px solid #333; border-radius: 10px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: transform 0.2s;}
+.animal-box:hover {transform: scale(1.1);}
+.animal-box img {width: 100%; height: 100%; object-fit: cover; border-radius: 8px;}
+#question {margin: 20px 0; font-size: 18px; text-align: center;}
+.answer-btn {padding: 8px 16px; margin: 5px; border: none; border-radius: 8px; cursor: pointer; font-size: 16px; background: #00bfff; color: white; transition: transform 0.2s;}
+.answer-btn:hover {transform: scale(1.05);}
+#feedback {margin-top: 10px; font-size: 18px;}
+#playAgain {padding: 10px 20px; margin-top: 15px; font-size: 18px; background-color: #4D96FF; color: white; border: none; border-radius: 8px; cursor: pointer;}
+#playAgain:hover {background-color: #1E70E0;}
+</style>
+</head>
+<body>
+<img src="https://img.favpng.com/12/1/4/oxford-international-school-bishkek-education-png-favpng-g81a2VubB7CyV6WE3xYnsjR9Q.jpg"
+     alt="Oxford International School Logo"
+     style="width:120px; height:auto;">
+<h1>OXFORD INTERNATIONAL SCHOOL</h1>
+<h2>ICT Primary Quiz Game</h2>
+<div id="animal-selection">
+  <div id="boxes"></div>
+</div>
+<div id="quiz">
+  <div id="question"></div>
+  <div id="answers"></div>
+  <div id="feedback"></div>
+  <div>Score: <span id="score">0</span></div>
+</div>
+<div id="result">
+  <h2 id="finalScore"></h2>
+  <button id="playAgain">New Game</button>
+</div>
+<script>
+const allAnimals = [
+  {name: 'Cat', imgs: ['https://upload.wikimedia.org/wikipedia/commons/3/3a/Cat03.jpg']},
+  {name: 'Dog', imgs: ['https://upload.wikimedia.org/wikipedia/commons/6/6e/Golde33443.jpg']},
+  {name: 'Panda', imgs: ['https://upload.wikimedia.org/wikipedia/commons/0/0f/Grosser_Panda.JPG']},
+  {name: 'Lion', imgs: ['https://upload.wikimedia.org/wikipedia/commons/7/73/Lion_waiting_in_Namibia.jpg']},
+  {name: 'Elephant', imgs: ['https://upload.wikimedia.org/wikipedia/commons/3/37/African_Bush_Elephant.jpg']},
+  {name: 'Tiger', imgs: ['https://upload.wikimedia.org/wikipedia/commons/5/56/Tiger.50.jpg']}
+];
+
+const animalSelection = document.getElementById('animal-selection');
+const boxesDiv = document.getElementById('boxes');
+const quizDiv = document.getElementById('quiz');
+const questionEl = document.getElementById('question');
+const answersDiv = document.getElementById('answers');
+const feedbackEl = document.getElementById('feedback');
+const scoreEl = document.getElementById('score');
+const resultDiv = document.getElementById('result');
+const finalScoreEl = document.getElementById('finalScore');
+const playAgainBtn = document.getElementById('playAgain');
+
+let score = 0;
+let questions = [
+  {q: 'What does CPU stand for?', a: ['Central Processing Unit', 'Computer Personal Unit', 'Central Programming Unit'], correct: 0},
+  {q: 'What is the main function of RAM?', a: ['Long-term storage','Temporary memory for running programs','Connects to the internet'], correct: 1},
+  {q: 'Which software is used to make presentations?', a: ['Microsoft Word','Microsoft Excel','Microsoft PowerPoint'], correct: 2},
+  {q: 'What does HTML stand for?', a: ['HyperText Markup Language','HighText Machine Language','HyperTool Markup Language'], correct: 0},
+  {q: 'What key combination is used to copy?', a: ['Ctrl + V','Ctrl + C','Ctrl + X'], correct: 1},
+  {q: 'Which device is used to input text?', a: ['Monitor','Keyboard','Printer'], correct: 1},
+  {q: 'What is the shortcut for undo?', a: ['Ctrl + Z','Ctrl + Y','Ctrl + X'], correct: 0},
+  {q: 'Which application is used to create spreadsheets?', a: ['Excel','Word','PowerPoint'], correct: 0},
+  {q: 'What is an IP address used for?', a: ['Identify a computer on a network','Protect files','Download software'], correct: 0},
+  {q: 'What does URL stand for?', a: ['Uniform Resource Locator','Universal Resource Link','Unique Resource Location'], correct: 0},
+  {q: 'Which part of the computer runs programs?', a: ['CPU','RAM','Hard Drive'], correct: 0},
+  {q: 'What software is used to type documents?', a: ['Word','Excel','PowerPoint'], correct: 0},
+  {q: 'Which program is used to make charts?', a: ['Excel','Word','Notepad'], correct: 0},
+  {q: 'Which key is used to delete characters?', a: ['Backspace','Enter','Shift'], correct: 0},
+  {q: 'What does GUI stand for?', a: ['Graphical User Interface','General User Input','Graph Utility Interface'], correct: 0},
+  {q: 'What is the shortcut to paste?', a: ['Ctrl + V','Ctrl + P','Ctrl + X'], correct: 0},
+  {q: 'Which device displays output visually?', a: ['Monitor','Keyboard','Mouse'], correct: 0},
+  {q: 'What does URL link to?', a: ['Website','Folder','Application'], correct: 0},
+  {q: 'What is cloud storage?', a: ['Online file storage','Computer folder','Email'], correct: 0},
+  {q: 'Which device is used to point on screen?', a: ['Mouse','Printer','Keyboard'], correct: 0}
+];
+
+function getRandomAnimals(count = 6) {
+  let shuffled = [...allAnimals].sort(() => 0.5 - Math.random());
+  return shuffled.slice(0, count);
+}
+
+function createBoxes() {
+  boxesDiv.innerHTML = '';
+  const selectedAnimals = getRandomAnimals(6);
+  selectedAnimals.forEach(animal => {
+    const box = document.createElement('div');
+    box.classList.add('animal-box');
+    const imgIndex = Math.floor(Math.random() * animal.imgs.length);
+    const img = document.createElement('img');
+    img.src = animal.imgs[imgIndex];
+    img.alt = animal.name;
+    box.appendChild(img);
+    box.addEventListener('click', () => {
+      animalSelection.style.display = 'none';
+      quizDiv.style.display = 'flex';
+      const qIndex = Math.floor(Math.random() * questions.length);
+      showQuestion(qIndex);
+    });
+    boxesDiv.appendChild(box);
+  });
+}
+
+function showQuestion(qIndex) {
+  const q = questions[qIndex];
+  questionEl.textContent = q.q;
+  answersDiv.innerHTML = '';
+  feedbackEl.textContent = '';
+  q.a.forEach((answer, index) => {
+    const btn = document.createElement('button');
+    btn.textContent = answer;
+    btn.classList.add('answer-btn');
+    btn.addEventListener('click', () => {
+      if (index === q.correct) {
+        score += 10;
+        feedbackEl.textContent = 'Correct! ✅';
+      } else {
+        feedbackEl.textContent = 'Wrong! ❌';
+      }
+      scoreEl.textContent = score;
+      setTimeout(() => {
+        quizDiv.style.display = 'none';
+        createBoxes();
+        animalSelection.style.display = 'flex';
+      }, 1000);
+    });
+    answersDiv.appendChild(btn);
+  });
+}
+
+playAgainBtn.addEventListener('click', () => {
+  resultDiv.style.display = 'none';
+  score = 0;
+  scoreEl.textContent = score;
+  createBoxes();
+  animalSelection.style.display = 'flex';
+});
+
+createBoxes();
+animalSelection.style.display = 'flex';
+</script>
+</body>
+</html>
+
+
